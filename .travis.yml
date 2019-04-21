@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t hbarquero/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run hbarquero/react-test npm run test -- --coverage
+
+after_success:
+  - docker build -t hbarquero/multi-client ./client
+  - docker build -t hbarquero/multi-nginx ./nginx
+  - docker build -t hbarquero/multi-server ./server
+  - docker build -t hbarquero/multi-worker ./worker
+  #Log in to the docker CLI - set up var on Travis
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #push images to docker hub
+  - docker push hbarquero/multi-client
+  - docker push hbarquero/multi-nginx
+  - docker push hbarquero/multi-server
+  - docker push hbarquero/multi-worker
+  
